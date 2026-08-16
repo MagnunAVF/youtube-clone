@@ -15,6 +15,7 @@ export class Video {
   @Prop({ trim: true })
   description?: string;
 
+  // Key convention: videos/{userId}/{videoId}/original.<ext>
   @Prop({ required: true })
   s3Key: string;
 
