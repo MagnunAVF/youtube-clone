@@ -37,6 +37,34 @@ describe('Videos (e2e)', () => {
     );
   });
 
+  it('/videos (GET) lists the created video with a resolved uploader', async () => {
+    const userResponse = await request(app.getHttpServer())
+      .post('/users')
+      .send({ displayName: 'Grace Hopper' })
+      .expect(201);
+    const uploaderId = userResponse.body._id as string;
+
+    const uploadResponse = await request(app.getHttpServer())
+      .post('/videos')
+      .field('title', 'Listed Video')
+      .field('uploaderId', uploaderId)
+      .attach('file', Buffer.from('fake-video-bytes'), 'clip.mp4')
+      .expect(201);
+    const videoId = uploadResponse.body._id as string;
+
+    const listResponse = await request(app.getHttpServer()).get('/videos').expect(200);
+
+    const listedVideo = (listResponse.body as { id: string }[]).find(
+      (video) => video.id === videoId,
+    );
+    expect(listedVideo).toMatchObject({
+      id: videoId,
+      title: 'Listed Video',
+      thumbnailUrl: null,
+      uploader: { id: uploaderId, displayName: 'Grace Hopper' },
+    });
+  });
+
   afterEach(async () => {
     await app.close();
   });

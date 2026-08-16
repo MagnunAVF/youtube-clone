@@ -7,10 +7,14 @@ import { S3_CLIENT } from '../storage/storage.constants';
 
 describe('VideosService', () => {
   let service: VideosService;
-  const videoModel = { create: jest.fn() };
+  const findQuery = { sort: jest.fn(), populate: jest.fn(), exec: jest.fn() };
+  const videoModel = { create: jest.fn(), find: jest.fn(() => findQuery) };
   const s3Client = { send: jest.fn() };
 
   beforeEach(async () => {
+    findQuery.sort.mockReturnValue(findQuery);
+    findQuery.populate.mockReturnValue(findQuery);
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         VideosService,
@@ -51,5 +55,40 @@ describe('VideosService', () => {
     expect(created.title).toBe(dto.title);
     expect(created.uploaderId.toString()).toBe(dto.uploaderId);
     expect(created.s3Key).toBe(putCommand.input.Key);
+  });
+
+  it('lists videos newest-first with a resolved uploader and placeholder thumbnail', async () => {
+    findQuery.exec.mockResolvedValue([
+      {
+        _id: { toString: () => 'video-1' },
+        title: 'My Video',
+        uploaderId: { _id: { toString: () => 'user-1' }, displayName: 'Ada Lovelace' },
+      },
+      {
+        _id: { toString: () => 'video-2' },
+        title: 'Orphaned Video',
+        uploaderId: null,
+      },
+    ]);
+
+    const result = await service.findAll();
+
+    expect(videoModel.find).toHaveBeenCalledTimes(1);
+    expect(findQuery.sort).toHaveBeenCalledWith({ createdAt: -1 });
+    expect(findQuery.populate).toHaveBeenCalledWith('uploaderId');
+    expect(result).toEqual([
+      {
+        id: 'video-1',
+        title: 'My Video',
+        thumbnailUrl: null,
+        uploader: { id: 'user-1', displayName: 'Ada Lovelace' },
+      },
+      {
+        id: 'video-2',
+        title: 'Orphaned Video',
+        thumbnailUrl: null,
+        uploader: null,
+      },
+    ]);
   });
 });

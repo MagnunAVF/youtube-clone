@@ -6,7 +6,9 @@ import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { extname } from 'node:path';
 import { Video, VideoDocument } from './schemas/video.schema';
 import { CreateVideoDto } from './dto/create-video.dto';
+import { VideoListItemDto } from './dto/video-list-item.dto';
 import { S3_CLIENT } from '../storage/storage.constants';
+import { UserDocument } from '../users/schemas/user.schema';
 
 @Injectable()
 export class VideosService {
@@ -44,5 +46,23 @@ export class VideosService {
       s3Key,
       uploaderId: new Types.ObjectId(createVideoDto.uploaderId),
     });
+  }
+
+  async findAll(): Promise<VideoListItemDto[]> {
+    const videos = await this.videoModel
+      .find()
+      .sort({ createdAt: -1 })
+      .populate<{ uploaderId: UserDocument | null }>('uploaderId')
+      .exec();
+
+    return videos.map((video) => ({
+      id: video._id.toString(),
+      title: video.title,
+      // No transcoding/thumbnail generation yet (Phase 3) — placeholder for now.
+      thumbnailUrl: null,
+      uploader: video.uploaderId
+        ? { id: video.uploaderId._id.toString(), displayName: video.uploaderId.displayName }
+        : null,
+    }));
   }
 }
