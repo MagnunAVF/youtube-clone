@@ -4,7 +4,7 @@ import { VideosService } from './videos.service';
 
 describe('VideosController', () => {
   let controller: VideosController;
-  const videosService = { create: jest.fn(), findAll: jest.fn() };
+  const videosService = { create: jest.fn(), findAll: jest.fn(), findOne: jest.fn() };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -39,5 +39,23 @@ describe('VideosController', () => {
 
     expect(videosService.findAll).toHaveBeenCalledTimes(1);
     expect(result).toEqual(videos);
+  });
+
+  it('delegates fetching a single video to the service', async () => {
+    const video = {
+      id: '1',
+      title: 'My Video',
+      status: 'uploaded',
+      thumbnailUrl: null,
+      uploader: null,
+      playbackUrl: 'https://videos.example.com/signed-url',
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    };
+    videosService.findOne.mockResolvedValue(video);
+
+    const result = await controller.findOne('1');
+
+    expect(videosService.findOne).toHaveBeenCalledWith('1');
+    expect(result).toEqual(video);
   });
 });

@@ -1,14 +1,18 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 import { Model, Types } from 'mongoose';
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { extname } from 'node:path';
 import { Video, VideoDocument } from './schemas/video.schema';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { VideoListItemDto } from './dto/video-list-item.dto';
+import { VideoDetailDto } from './dto/video-detail.dto';
 import { S3_CLIENT } from '../storage/storage.constants';
 import { UserDocument } from '../users/schemas/user.schema';
+
+const PLAYBACK_URL_EXPIRY_SECONDS = 3600;
 
 @Injectable()
 export class VideosService {
@@ -64,5 +68,38 @@ export class VideosService {
         ? { id: video.uploaderId._id.toString(), displayName: video.uploaderId.displayName }
         : null,
     }));
+  }
+
+  async findOne(id: string): Promise<VideoDetailDto> {
+    const video = Types.ObjectId.isValid(id)
+      ? await this.videoModel
+          .findById(id)
+          .populate<{ uploaderId: UserDocument | null }>('uploaderId')
+          .exec()
+      : null;
+
+    if (!video) {
+      throw new NotFoundException(`Video ${id} not found`);
+    }
+
+    const playbackUrl = await getSignedUrl(
+      this.s3Client,
+      new GetObjectCommand({ Bucket: this.bucket, Key: video.s3Key }),
+      { expiresIn: PLAYBACK_URL_EXPIRY_SECONDS },
+    );
+
+    return {
+      id: video._id.toString(),
+      title: video.title,
+      description: video.description,
+      status: video.status,
+      // No transcoding/thumbnail generation yet (Phase 3) — placeholder for now.
+      thumbnailUrl: null,
+      uploader: video.uploaderId
+        ? { id: video.uploaderId._id.toString(), displayName: video.uploaderId.displayName }
+        : null,
+      playbackUrl,
+      createdAt: video.createdAt,
+    };
   }
 }

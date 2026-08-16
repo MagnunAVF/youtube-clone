@@ -1,19 +1,30 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
+import { NotFoundException } from '@nestjs/common';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { VideosService } from './videos.service';
 import { Video } from './schemas/video.schema';
 import { S3_CLIENT } from '../storage/storage.constants';
 
+jest.mock('@aws-sdk/s3-request-presigner');
+
 describe('VideosService', () => {
   let service: VideosService;
   const findQuery = { sort: jest.fn(), populate: jest.fn(), exec: jest.fn() };
-  const videoModel = { create: jest.fn(), find: jest.fn(() => findQuery) };
+  const findByIdQuery = { populate: jest.fn(), exec: jest.fn() };
+  const videoModel = {
+    create: jest.fn(),
+    find: jest.fn(() => findQuery),
+    findById: jest.fn(() => findByIdQuery),
+  };
   const s3Client = { send: jest.fn() };
+  const getSignedUrlMock = jest.mocked(getSignedUrl);
 
   beforeEach(async () => {
     findQuery.sort.mockReturnValue(findQuery);
     findQuery.populate.mockReturnValue(findQuery);
+    findByIdQuery.populate.mockReturnValue(findByIdQuery);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -90,5 +101,55 @@ describe('VideosService', () => {
         uploader: null,
       },
     ]);
+  });
+
+  describe('findOne', () => {
+    it('returns video metadata with a presigned playback URL', async () => {
+      const createdAt = new Date('2026-01-01T00:00:00.000Z');
+      findByIdQuery.exec.mockResolvedValue({
+        _id: { toString: () => '507f1f77bcf86cd799439011' },
+        title: 'My Video',
+        description: 'A video',
+        status: 'uploaded',
+        s3Key: 'videos/uploader-1/507f1f77bcf86cd799439011/original.mp4',
+        uploaderId: { _id: { toString: () => 'user-1' }, displayName: 'Ada Lovelace' },
+        createdAt,
+      });
+      getSignedUrlMock.mockResolvedValue('https://videos.example.com/signed-url');
+
+      const result = await service.findOne('507f1f77bcf86cd799439011');
+
+      expect(videoModel.findById).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
+      expect(findByIdQuery.populate).toHaveBeenCalledWith('uploaderId');
+      const [, getObjectCommand, options] = getSignedUrlMock.mock.calls[0];
+      expect(getObjectCommand.input).toMatchObject({
+        Bucket: 'videos',
+        Key: 'videos/uploader-1/507f1f77bcf86cd799439011/original.mp4',
+      });
+      expect(options).toEqual({ expiresIn: 3600 });
+      expect(result).toEqual({
+        id: '507f1f77bcf86cd799439011',
+        title: 'My Video',
+        description: 'A video',
+        status: 'uploaded',
+        thumbnailUrl: null,
+        uploader: { id: 'user-1', displayName: 'Ada Lovelace' },
+        playbackUrl: 'https://videos.example.com/signed-url',
+        createdAt,
+      });
+    });
+
+    it('throws NotFoundException for a malformed id', async () => {
+      await expect(service.findOne('not-an-object-id')).rejects.toThrow(NotFoundException);
+      expect(videoModel.findById).not.toHaveBeenCalled();
+    });
+
+    it('throws NotFoundException when no video matches the id', async () => {
+      findByIdQuery.exec.mockResolvedValue(null);
+
+      await expect(service.findOne('507f1f77bcf86cd799439011')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
   });
 });
