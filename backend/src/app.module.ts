@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { HealthModule } from './health/health.module';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { HealthModule } from './health/health.module';
         uri: configService.get<string>('MONGODB_URI', 'mongodb://localhost:27017/youtube-clone'),
       }),
     }),
+    StorageModule,
     HealthModule,
   ],
 })

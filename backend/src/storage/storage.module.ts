@@ -1,0 +1,32 @@
+import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { S3Client } from '@aws-sdk/client-s3';
+import { S3_CLIENT } from './storage.constants';
+
+@Module({
+  providers: [
+    {
+      provide: S3_CLIENT,
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const endpoint = configService.get<string>('S3_ENDPOINT');
+
+        return new S3Client({
+          region: configService.get<string>('AWS_REGION', 'us-east-1'),
+          // Local dev talks to MinIO via S3_ENDPOINT; in AWS this is unset and
+          // the SDK falls back to real S3 endpoints + the ECS task's IAM role.
+          ...(endpoint && {
+            endpoint,
+            forcePathStyle: true,
+            credentials: {
+              accessKeyId: configService.getOrThrow<string>('S3_ACCESS_KEY_ID'),
+              secretAccessKey: configService.getOrThrow<string>('S3_SECRET_ACCESS_KEY'),
+            },
+          }),
+        });
+      },
+    },
+  ],
+  exports: [S3_CLIENT],
+})
+export class StorageModule {}
