@@ -26,3 +26,5 @@ export class Video {
 }
 
 export const VideoSchema = SchemaFactory.createForClass(Video);
+
+VideoSchema.index({ createdAt: -1 });
