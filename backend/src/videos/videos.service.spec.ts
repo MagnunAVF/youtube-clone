@@ -139,11 +139,6 @@ describe('VideosService', () => {
       });
     });
 
-    it('throws NotFoundException for a malformed id', async () => {
-      await expect(service.findOne('not-an-object-id')).rejects.toThrow(NotFoundException);
-      expect(videoModel.findById).not.toHaveBeenCalled();
-    });
-
     it('throws NotFoundException when no video matches the id', async () => {
       findByIdQuery.exec.mockResolvedValue(null);
 

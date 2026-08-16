@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { BadRequestException } from '@nestjs/common';
 import { VideosController } from './videos.controller';
 import { VideosService } from './videos.service';
 
@@ -29,6 +30,15 @@ describe('VideosController', () => {
 
     expect(videosService.create).toHaveBeenCalledWith(dto, file);
     expect(result).toEqual(created);
+  });
+
+  it('rejects when no file is uploaded', async () => {
+    const dto = { title: 'My Video', uploaderId: '507f1f77bcf86cd799439011' };
+
+    await expect(
+      controller.create(dto, undefined as unknown as Express.Multer.File),
+    ).rejects.toThrow(BadRequestException);
+    expect(videosService.create).not.toHaveBeenCalled();
   });
 
   it('delegates listing to the service', async () => {

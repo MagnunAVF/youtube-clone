@@ -71,12 +71,10 @@ export class VideosService {
   }
 
   async findOne(id: string): Promise<VideoDetailDto> {
-    const video = Types.ObjectId.isValid(id)
-      ? await this.videoModel
-          .findById(id)
-          .populate<{ uploaderId: UserDocument | null }>('uploaderId')
-          .exec()
-      : null;
+    const video = await this.videoModel
+      .findById(id)
+      .populate<{ uploaderId: UserDocument | null }>('uploaderId')
+      .exec();
 
     if (!video) {
       throw new NotFoundException(`Video ${id} not found`);

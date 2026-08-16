@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { Types } from 'mongoose';
@@ -14,6 +14,9 @@ describe('Videos (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
+    );
     await app.init();
   });
 
@@ -105,6 +108,50 @@ describe('Videos (e2e)', () => {
     const missingId = new Types.ObjectId().toHexString();
 
     await request(app.getHttpServer()).get(`/videos/${missingId}`).expect(404);
+  });
+
+  it('/videos/:id (GET) 400s for a malformed id', async () => {
+    await request(app.getHttpServer()).get('/videos/not-an-object-id').expect(400);
+  });
+
+  it('/videos (POST) 400s when the title is missing', async () => {
+    const uploaderId = new Types.ObjectId().toHexString();
+
+    await request(app.getHttpServer())
+      .post('/videos')
+      .field('uploaderId', uploaderId)
+      .attach('file', Buffer.from('fake-video-bytes'), 'clip.mp4')
+      .expect(400);
+  });
+
+  it('/videos (POST) 400s when uploaderId is not a valid id', async () => {
+    await request(app.getHttpServer())
+      .post('/videos')
+      .field('title', 'My Video')
+      .field('uploaderId', 'not-an-object-id')
+      .attach('file', Buffer.from('fake-video-bytes'), 'clip.mp4')
+      .expect(400);
+  });
+
+  it('/videos (POST) 400s when no file is attached', async () => {
+    const uploaderId = new Types.ObjectId().toHexString();
+
+    await request(app.getHttpServer())
+      .post('/videos')
+      .field('title', 'My Video')
+      .field('uploaderId', uploaderId)
+      .expect(400);
+  });
+
+  it('/videos (POST) 400s when the file is not a video', async () => {
+    const uploaderId = new Types.ObjectId().toHexString();
+
+    await request(app.getHttpServer())
+      .post('/videos')
+      .field('title', 'My Video')
+      .field('uploaderId', uploaderId)
+      .attach('file', Buffer.from('not a video'), { filename: 'notes.txt', contentType: 'text/plain' })
+      .expect(400);
   });
 
   afterEach(async () => {
