@@ -24,6 +24,10 @@ export class Video {
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   uploaderId: Types.ObjectId;
+
+  // Managed by the `timestamps: true` schema option below; declared here only for typing.
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export const VideoSchema = SchemaFactory.createForClass(Video);
