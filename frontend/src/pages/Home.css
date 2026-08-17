@@ -4,6 +4,12 @@
   gap: 24px;
 }
 
+.video-card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
 .video-card__thumbnail {
   aspect-ratio: 16 / 9;
   background: var(--bg-hover);

@@ -15,3 +15,14 @@ export interface VideoListItem {
   thumbnailUrl: string | null;
   uploader: { id: string; displayName: string } | null;
 }
+
+export interface VideoDetail {
+  id: string;
+  title: string;
+  description?: string;
+  status: string;
+  thumbnailUrl: string | null;
+  uploader: { id: string; displayName: string } | null;
+  playbackUrl: string;
+  createdAt: string;
+}

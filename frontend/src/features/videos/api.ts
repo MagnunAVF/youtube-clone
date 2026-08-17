@@ -1,4 +1,4 @@
-import type { VideoListItem, VideoRecord } from './types';
+import type { VideoDetail, VideoListItem, VideoRecord } from './types';
 import { API_BASE_URL } from '../../lib/config';
 
 export async function fetchVideos(): Promise<VideoListItem[]> {
@@ -9,6 +9,16 @@ export async function fetchVideos(): Promise<VideoListItem[]> {
   }
 
   return (await response.json()) as VideoListItem[];
+}
+
+export async function fetchVideo(id: string): Promise<VideoDetail> {
+  const response = await fetch(`${API_BASE_URL}/videos/${id}`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch video');
+  }
+
+  return (await response.json()) as VideoDetail;
 }
 
 export interface CreateVideoInput {
