@@ -8,3 +8,10 @@ export interface VideoRecord {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface VideoListItem {
+  id: string;
+  title: string;
+  thumbnailUrl: string | null;
+  uploader: { id: string; displayName: string } | null;
+}
