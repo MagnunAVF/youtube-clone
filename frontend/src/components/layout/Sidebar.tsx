@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { HomeIcon } from './icons';
+import { HomeIcon, UploadIcon } from './icons';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -17,6 +17,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               <NavLink to="/" end onClick={onClose}>
                 <HomeIcon />
                 <span>Home</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/upload" onClick={onClose}>
+                <UploadIcon />
+                <span>Upload</span>
               </NavLink>
             </li>
           </ul>
