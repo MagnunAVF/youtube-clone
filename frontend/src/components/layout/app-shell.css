@@ -89,13 +89,6 @@
   flex-shrink: 0;
 }
 
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
 /* Body: sidebar + content */
 
 .app-body {

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { MenuIcon, PlayIcon, SearchIcon } from './icons';
+import { UserMenu } from '../../features/user/UserMenu';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -31,7 +32,7 @@ export function Header({ onMenuClick }: HeaderProps) {
       </form>
 
       <div className="app-header__end">
-        <div className="avatar" aria-hidden="true" />
+        <UserMenu />
       </div>
     </header>
   );
