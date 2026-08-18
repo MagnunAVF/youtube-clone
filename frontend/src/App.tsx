@@ -1,9 +1,12 @@
+import { Suspense, lazy } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 import { Home } from './pages/Home';
 import { Upload } from './pages/Upload';
-import { Watch } from './pages/Watch';
 import { CurrentUserProvider } from './features/user/CurrentUserContext';
+
+// Lazy-loaded: pulls in Shaka Player, which shouldn't bloat the initial bundle.
+const Watch = lazy(() => import('./pages/Watch').then((m) => ({ default: m.Watch })));
 
 function App() {
   return (
@@ -13,7 +16,14 @@ function App() {
           <Route element={<AppShell />}>
             <Route index element={<Home />} />
             <Route path="upload" element={<Upload />} />
-            <Route path="watch/:id" element={<Watch />} />
+            <Route
+              path="watch/:id"
+              element={
+                <Suspense fallback={<p>Loading player…</p>}>
+                  <Watch />
+                </Suspense>
+              }
+            />
           </Route>
         </Routes>
       </BrowserRouter>
