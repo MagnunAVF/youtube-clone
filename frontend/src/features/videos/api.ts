@@ -1,24 +1,13 @@
 import type { VideoDetail, VideoListItem, VideoRecord } from './types';
 import { API_BASE_URL } from '../../lib/config';
+import { apiClient, ApiError } from '../../lib/apiClient';
 
-export async function fetchVideos(): Promise<VideoListItem[]> {
-  const response = await fetch(`${API_BASE_URL}/videos`);
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch videos');
-  }
-
-  return (await response.json()) as VideoListItem[];
+export function fetchVideos(): Promise<VideoListItem[]> {
+  return apiClient.get<VideoListItem[]>('/videos');
 }
 
-export async function fetchVideo(id: string): Promise<VideoDetail> {
-  const response = await fetch(`${API_BASE_URL}/videos/${id}`);
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch video');
-  }
-
-  return (await response.json()) as VideoDetail;
+export function fetchVideo(id: string): Promise<VideoDetail> {
+  return apiClient.get<VideoDetail>(`/videos/${id}`);
 }
 
 export interface CreateVideoInput {
@@ -28,7 +17,7 @@ export interface CreateVideoInput {
   file: File;
 }
 
-// Progress reporting during upload requires XMLHttpRequest - fetch has no upload progress event.
+// Progress reporting during upload requires XMLHttpRequest - apiClient (fetch-based) has no upload progress event.
 export function uploadVideo(
   input: CreateVideoInput,
   onProgress?: (percent: number) => void,
@@ -55,11 +44,11 @@ export function uploadVideo(
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve(JSON.parse(xhr.responseText) as VideoRecord);
       } else {
-        reject(new Error(`Upload failed (${xhr.status})`));
+        reject(new ApiError('Upload failed', xhr.status));
       }
     };
 
-    xhr.onerror = () => reject(new Error('Upload failed'));
+    xhr.onerror = () => reject(new ApiError('Upload failed', 0));
 
     xhr.send(formData);
   });
