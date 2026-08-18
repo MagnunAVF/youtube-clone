@@ -26,10 +26,7 @@ export class VideosService {
     this.bucket = configService.get<string>('S3_BUCKET_NAME', 'videos');
   }
 
-  async create(
-    createVideoDto: CreateVideoDto,
-    file: Express.Multer.File,
-  ): Promise<VideoDocument> {
+  async create(createVideoDto: CreateVideoDto, file: Express.Multer.File): Promise<VideoDocument> {
     const videoId = new Types.ObjectId();
     // Key convention: videos/{userId}/{videoId}/original.<ext>
     const s3Key = `videos/${createVideoDto.uploaderId}/${videoId.toHexString()}/original${extname(file.originalname)}`;
@@ -62,7 +59,7 @@ export class VideosService {
     return videos.map((video) => ({
       id: video._id.toString(),
       title: video.title,
-      // No transcoding/thumbnail generation yet (Phase 3) — placeholder for now.
+      // No transcoding/thumbnail generation yet (Phase 3) - placeholder for now.
       thumbnailUrl: null,
       uploader: video.uploaderId
         ? { id: video.uploaderId._id.toString(), displayName: video.uploaderId.displayName }
@@ -91,7 +88,7 @@ export class VideosService {
       title: video.title,
       description: video.description,
       status: video.status,
-      // No transcoding/thumbnail generation yet (Phase 3) — placeholder for now.
+      // No transcoding/thumbnail generation yet (Phase 3) - placeholder for now.
       thumbnailUrl: null,
       uploader: video.uploaderId
         ? { id: video.uploaderId._id.toString(), displayName: video.uploaderId.displayName }
