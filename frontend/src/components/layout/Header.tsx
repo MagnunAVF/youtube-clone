@@ -24,7 +24,11 @@ export function Header({ onMenuClick }: HeaderProps) {
         </Link>
       </div>
 
-      <form className="app-header__search" role="search" onSubmit={(event) => event.preventDefault()}>
+      <form
+        className="app-header__search"
+        role="search"
+        onSubmit={(event) => event.preventDefault()}
+      >
         <input type="search" placeholder="Search" aria-label="Search" />
         <button type="submit" aria-label="Search">
           <SearchIcon />

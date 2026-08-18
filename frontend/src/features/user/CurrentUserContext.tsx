@@ -15,9 +15,7 @@ const CurrentUserContext = createContext<CurrentUserContextValue | null>(null);
 
 export function CurrentUserProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<StoredUser[]>(() => getStoredUsers());
-  const [currentUserId, setCurrentUserIdState] = useState<string | null>(() =>
-    getCurrentUserId(),
-  );
+  const [currentUserId, setCurrentUserIdState] = useState<string | null>(() => getCurrentUserId());
 
   const selectUser = (id: string) => {
     setCurrentUserId(id);
@@ -42,9 +40,7 @@ export function CurrentUserProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <CurrentUserContext.Provider
-      value={{ currentUser, users, selectUser, createUser, switchUser }}
-    >
+    <CurrentUserContext.Provider value={{ currentUser, users, selectUser, createUser, switchUser }}>
       {children}
     </CurrentUserContext.Provider>
   );

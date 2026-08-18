@@ -42,9 +42,7 @@ export function Home() {
         <Link className="video-card" to={`/watch/${video.id}`} key={video.id}>
           <div className="video-card__thumbnail" aria-hidden="true" />
           <p className="video-card__title">{video.title}</p>
-          {video.uploader && (
-            <p className="video-card__uploader">{video.uploader.displayName}</p>
-          )}
+          {video.uploader && <p className="video-card__uploader">{video.uploader.displayName}</p>}
         </Link>
       ))}
     </div>

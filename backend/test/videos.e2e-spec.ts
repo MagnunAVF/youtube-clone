@@ -85,9 +85,7 @@ describe('Videos (e2e)', () => {
       .expect(201);
     const videoId = uploadResponse.body._id as string;
 
-    const detailResponse = await request(app.getHttpServer())
-      .get(`/videos/${videoId}`)
-      .expect(200);
+    const detailResponse = await request(app.getHttpServer()).get(`/videos/${videoId}`).expect(200);
 
     expect(detailResponse.body).toMatchObject({
       id: videoId,
@@ -150,7 +148,10 @@ describe('Videos (e2e)', () => {
       .post('/videos')
       .field('title', 'My Video')
       .field('uploaderId', uploaderId)
-      .attach('file', Buffer.from('not a video'), { filename: 'notes.txt', contentType: 'text/plain' })
+      .attach('file', Buffer.from('not a video'), {
+        filename: 'notes.txt',
+        contentType: 'text/plain',
+      })
       .expect(400);
   });
 

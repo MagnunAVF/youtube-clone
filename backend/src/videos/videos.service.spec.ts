@@ -142,9 +142,7 @@ describe('VideosService', () => {
     it('throws NotFoundException when no video matches the id', async () => {
       findByIdQuery.exec.mockResolvedValue(null);
 
-      await expect(service.findOne('507f1f77bcf86cd799439011')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.findOne('507f1f77bcf86cd799439011')).rejects.toThrow(NotFoundException);
     });
   });
 });
