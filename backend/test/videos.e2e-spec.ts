@@ -70,7 +70,7 @@ describe('Videos (e2e)', () => {
       .expect(401);
   });
 
-  it('/videos (GET) lists the created video with a resolved uploader — no auth required', async () => {
+  it('/videos (GET) lists the created video with a resolved uploader - no auth required', async () => {
     const { accessToken, uploaderId } = await signUp('Grace Hopper');
 
     const uploadResponse = await request(app.getHttpServer())
@@ -94,7 +94,7 @@ describe('Videos (e2e)', () => {
     });
   });
 
-  it('/videos/:id (GET) fetches metadata and a working playback URL — no auth required', async () => {
+  it('/videos/:id (GET) fetches metadata and a working playback URL - no auth required', async () => {
     const { accessToken, uploaderId } = await signUp('Katherine Johnson');
 
     const fileContents = 'fake-video-bytes-for-detail-test';
