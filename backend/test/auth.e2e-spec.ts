@@ -86,6 +86,72 @@ describe('Auth (e2e)', () => {
       .expect(400);
   });
 
+  it('/auth/login (POST) returns a JWT for valid credentials', async () => {
+    const email = `login-${Date.now()}@example.com`;
+    await request(app.getHttpServer())
+      .post('/auth/signup')
+      .send({ displayName: 'Login Test', email, password: 'supersecret' })
+      .expect(201);
+
+    const response = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ email, password: 'supersecret' })
+      .expect(201);
+
+    expect(response.body).toMatchObject({
+      accessToken: expect.any(String),
+      user: { displayName: 'Login Test', email },
+    });
+    expect((response.body.accessToken as string).split('.')).toHaveLength(3);
+  });
+
+  it('/auth/login (POST) is case-insensitive on email', async () => {
+    const email = `case-login-${Date.now()}@example.com`;
+    await request(app.getHttpServer())
+      .post('/auth/signup')
+      .send({ displayName: 'Case Login', email, password: 'supersecret' })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ email: email.toUpperCase(), password: 'supersecret' })
+      .expect(201);
+  });
+
+  it('/auth/login (POST) 401s for a wrong password', async () => {
+    const email = `wrongpass-${Date.now()}@example.com`;
+    await request(app.getHttpServer())
+      .post('/auth/signup')
+      .send({ displayName: 'Wrong Pass', email, password: 'supersecret' })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ email, password: 'not-the-password' })
+      .expect(401);
+  });
+
+  it('/auth/login (POST) 401s for an unknown email', async () => {
+    await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ email: `unknown-${Date.now()}@example.com`, password: 'whatever' })
+      .expect(401);
+  });
+
+  it('/auth/login (POST) 400s on an invalid email', async () => {
+    await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ email: 'not-an-email', password: 'supersecret' })
+      .expect(400);
+  });
+
+  it('/auth/login (POST) 400s when the password is missing', async () => {
+    await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ email: `missing-pass-${Date.now()}@example.com` })
+      .expect(400);
+  });
+
   afterEach(async () => {
     await app.close();
   });

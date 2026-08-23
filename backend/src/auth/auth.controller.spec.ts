@@ -4,7 +4,7 @@ import { AuthService } from './auth.service';
 
 describe('AuthController', () => {
   let controller: AuthController;
-  const authService = { signup: jest.fn() };
+  const authService = { signup: jest.fn(), login: jest.fn() };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -30,6 +30,20 @@ describe('AuthController', () => {
     const result = await controller.signup(dto);
 
     expect(authService.signup).toHaveBeenCalledWith(dto);
+    expect(result).toEqual(response);
+  });
+
+  it('delegates login to the service', async () => {
+    const dto = { email: 'ada@example.com', password: 'supersecret' };
+    const response = {
+      accessToken: 'signed-jwt',
+      user: { id: '1', displayName: 'Ada Lovelace', email: 'ada@example.com' },
+    };
+    authService.login.mockResolvedValue(response);
+
+    const result = await controller.login(dto);
+
+    expect(authService.login).toHaveBeenCalledWith(dto);
     expect(result).toEqual(response);
   });
 });

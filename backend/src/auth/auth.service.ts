@@ -1,9 +1,10 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { UserDocument } from '../users/schemas/user.schema';
 import { SignupDto } from './dto/signup.dto';
+import { LoginDto } from './dto/login.dto';
 import { AuthResponse } from './interfaces/auth-response.interface';
 
 const SALT_ROUNDS = 10;
@@ -29,6 +30,22 @@ export class AuthService {
       email,
       passwordHash,
     });
+
+    return this.buildAuthResponse(user);
+  }
+
+  async login(loginDto: LoginDto): Promise<AuthResponse> {
+    const email = loginDto.email.toLowerCase();
+
+    const user = await this.usersService.findByEmail(email);
+    if (!user?.passwordHash) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    const passwordMatches = await bcrypt.compare(loginDto.password, user.passwordHash);
+    if (!passwordMatches) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
 
     return this.buildAuthResponse(user);
   }
