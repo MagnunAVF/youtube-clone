@@ -17,9 +17,12 @@ RUN pnpm --filter youtube-backend run build
 FROM base AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/backend/node_modules ./backend/node_modules
-COPY --from=build /app/backend/dist ./backend/dist
-COPY backend/package.json ./backend/package.json
+# The runtime only ever runs `node`; npm/npx/corepack are unused here and just add scan surface.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
+COPY --from=deps --chown=node:node /app/node_modules ./node_modules
+COPY --from=deps --chown=node:node /app/backend/node_modules ./backend/node_modules
+COPY --from=build --chown=node:node /app/backend/dist ./backend/dist
+COPY --chown=node:node backend/package.json ./backend/package.json
+USER node
 EXPOSE 3000
 CMD ["node", "backend/dist/main.js"]
