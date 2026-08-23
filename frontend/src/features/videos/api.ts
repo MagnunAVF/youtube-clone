@@ -1,6 +1,7 @@
 import type { VideoDetail, VideoListItem, VideoRecord } from './types';
 import { API_BASE_URL } from '../../lib/config';
 import { apiClient, ApiError } from '../../lib/apiClient';
+import { getAccessToken } from '../auth/session';
 
 export function fetchVideos(): Promise<VideoListItem[]> {
   return apiClient.get<VideoListItem[]>('/videos');
@@ -13,7 +14,6 @@ export function fetchVideo(id: string): Promise<VideoDetail> {
 export interface CreateVideoInput {
   title: string;
   description?: string;
-  uploaderId: string;
   file: File;
 }
 
@@ -28,11 +28,14 @@ export function uploadVideo(
     if (input.description) {
       formData.append('description', input.description);
     }
-    formData.append('uploaderId', input.uploaderId);
     formData.append('file', input.file);
 
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `${API_BASE_URL}/videos`);
+    const accessToken = getAccessToken();
+    if (accessToken) {
+      xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+    }
 
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable) {

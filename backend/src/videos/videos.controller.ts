@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -15,6 +16,9 @@ import { VideoListItemDto } from './dto/video-list-item.dto';
 import { VideoDetailDto } from './dto/video-detail.dto';
 import { VideoDocument } from './schemas/video.schema';
 import { ParseObjectIdPipe } from '../common/pipes/parse-object-id.pipe';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { UserDocument } from '../users/schemas/user.schema';
 
 const MAX_VIDEO_FILE_SIZE_BYTES = 2 * 1024 * 1024 * 1024; // 2GB
 
@@ -23,6 +27,7 @@ export class VideosController {
   constructor(private readonly videosService: VideosService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       limits: { fileSize: MAX_VIDEO_FILE_SIZE_BYTES },
@@ -38,13 +43,15 @@ export class VideosController {
   async create(
     @Body() createVideoDto: CreateVideoDto,
     @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() user: UserDocument,
   ): Promise<VideoDocument> {
     if (!file) {
       throw new BadRequestException('A video file is required');
     }
-    return this.videosService.create(createVideoDto, file);
+    return this.videosService.create(createVideoDto, user._id.toString(), file);
   }
 
+  // Videos are public: anyone can list and watch them, logged in or not.
   @Get()
   findAll(): Promise<VideoListItemDto[]> {
     return this.videosService.findAll();
