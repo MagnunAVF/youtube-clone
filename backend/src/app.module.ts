@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 import { StorageModule } from './storage/storage.module';
 import { UsersModule } from './users/users.module';
@@ -19,6 +20,7 @@ import { VideosModule } from './videos/videos.module';
     HealthModule,
     UsersModule,
     VideosModule,
+    AuthModule,
   ],
 })
 export class AppModule {}

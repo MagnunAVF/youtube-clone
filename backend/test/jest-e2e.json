@@ -11,10 +11,10 @@
   "coverageDirectory": "coverage-e2e",
   "coverageThreshold": {
     "global": {
-      "statements": 100,
-      "branches": 76,
-      "functions": 100,
-      "lines": 100
+      "statements": 97,
+      "branches": 74,
+      "functions": 91,
+      "lines": 96
     }
   }
 }

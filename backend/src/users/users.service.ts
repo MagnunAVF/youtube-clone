@@ -11,4 +11,8 @@ export class UsersService {
   create(createUserDto: CreateUserDto): Promise<UserDocument> {
     return this.userModel.create(createUserDto);
   }
+
+  findById(id: string): Promise<UserDocument | null> {
+    return this.userModel.findById(id).exec();
+  }
 }

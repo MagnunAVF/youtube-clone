@@ -13,6 +13,7 @@ services:
       S3_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       S3_BUCKET_NAME: videos
       CORS_ORIGIN: http://localhost:5173
+      JWT_SECRET: ${JWT_SECRET:-local-dev-secret-do-not-use-in-production}
     depends_on:
       - mongodb
       - minio-init
