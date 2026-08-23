@@ -3,7 +3,7 @@ name: Security
 on:
   pull_request:
   schedule:
-    - cron: "0 6 * * 1" # weekly, Monday 06:00 UTC - catches newly disclosed CVEs against unchanged deps
+    - cron: '0 6 * * 1' # weekly, Monday 06:00 UTC - catches newly disclosed CVEs against unchanged deps
   workflow_dispatch:
 
 permissions:
@@ -24,8 +24,8 @@ jobs:
           scanners: vuln,secret,config
           severity: CRITICAL,HIGH
           ignore-unfixed: true
-          skip-dirs: "**/node_modules,**/dist,**/build,**/coverage"
-          exit-code: "1"
+          skip-dirs: '**/node_modules,**/dist,**/build,**/coverage'
+          exit-code: '1'
 
   backend-image:
     name: Backend image scan
@@ -44,4 +44,4 @@ jobs:
           scanners: vuln
           severity: CRITICAL,HIGH
           ignore-unfixed: true
-          exit-code: "1"
+          exit-code: '1'

@@ -15,4 +15,16 @@ export class UsersService {
   findById(id: string): Promise<UserDocument | null> {
     return this.userModel.findById(id).exec();
   }
+
+  findByEmail(email: string): Promise<UserDocument | null> {
+    return this.userModel.findOne({ email }).exec();
+  }
+
+  createWithCredentials(input: {
+    displayName: string;
+    email: string;
+    passwordHash: string;
+  }): Promise<UserDocument> {
+    return this.userModel.create(input);
+  }
 }

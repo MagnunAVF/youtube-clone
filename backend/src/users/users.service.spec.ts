@@ -6,7 +6,12 @@ import { User } from './schemas/user.schema';
 describe('UsersService', () => {
   let service: UsersService;
   const findByIdQuery = { exec: jest.fn() };
-  const userModel = { create: jest.fn(), findById: jest.fn(() => findByIdQuery) };
+  const findOneQuery = { exec: jest.fn() };
+  const userModel = {
+    create: jest.fn(),
+    findById: jest.fn(() => findByIdQuery),
+    findOne: jest.fn(() => findOneQuery),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -47,5 +52,30 @@ describe('UsersService', () => {
     const result = await service.findById('missing');
 
     expect(result).toBeNull();
+  });
+
+  it('finds a user by email via the model', async () => {
+    const found = { _id: '1', displayName: 'Ada Lovelace', email: 'ada@example.com' };
+    findOneQuery.exec.mockResolvedValue(found);
+
+    const result = await service.findByEmail('ada@example.com');
+
+    expect(userModel.findOne).toHaveBeenCalledWith({ email: 'ada@example.com' });
+    expect(result).toEqual(found);
+  });
+
+  it('creates a user with credentials via the model', async () => {
+    const input = {
+      displayName: 'Ada Lovelace',
+      email: 'ada@example.com',
+      passwordHash: 'hashed',
+    };
+    const created = { _id: '1', ...input };
+    userModel.create.mockResolvedValue(created);
+
+    const result = await service.createWithCredentials(input);
+
+    expect(userModel.create).toHaveBeenCalledWith(input);
+    expect(result).toEqual(created);
   });
 });
