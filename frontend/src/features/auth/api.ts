@@ -10,3 +10,12 @@ export interface SignupInput {
 export function signup(input: SignupInput): Promise<AuthResponse> {
   return apiClient.post<AuthResponse>('/auth/signup', input);
 }
+
+export interface LoginInput {
+  email: string;
+  password: string;
+}
+
+export function login(input: LoginInput): Promise<AuthResponse> {
+  return apiClient.post<AuthResponse>('/auth/login', input);
+}

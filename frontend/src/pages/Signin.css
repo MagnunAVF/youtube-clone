@@ -1,19 +1,19 @@
-.signup-page {
+.signin-page {
   max-width: 360px;
 }
 
-.signup-page h1 {
+.signin-page h1 {
   font-size: 20px;
   margin: 0 0 16px;
 }
 
-.signup-page form {
+.signin-page form {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.signup-page label {
+.signin-page label {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -21,7 +21,7 @@
   color: var(--text-secondary);
 }
 
-.signup-page input {
+.signin-page input {
   padding: 8px 10px;
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -30,7 +30,7 @@
   font-size: 14px;
 }
 
-.signup-page button[type='submit'] {
+.signin-page button[type='submit'] {
   padding: 8px 16px;
   border: none;
   border-radius: 18px;
@@ -40,24 +40,24 @@
   cursor: pointer;
 }
 
-.signup-page button[type='submit']:disabled {
+.signin-page button[type='submit']:disabled {
   opacity: 0.5;
   cursor: default;
 }
 
-.signup-error {
+.signin-error {
   margin-top: 12px;
   color: var(--accent);
   font-size: 13px;
 }
 
-.signup-signin-link {
+.signin-signup-link {
   margin-top: 16px;
   font-size: 13px;
   color: var(--text-secondary);
 }
 
-.signup-signin-link a {
+.signin-signup-link a {
   color: var(--accent);
   font-weight: 600;
 }

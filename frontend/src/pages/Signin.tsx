@@ -1,15 +1,14 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { signup } from '../features/auth/api';
+import { login } from '../features/auth/api';
 import { useAuthSession } from '../features/auth/AuthSessionContext';
 import { ApiError } from '../lib/apiClient';
-import './Signup.css';
+import './Signin.css';
 
-export function Signup() {
+export function Signin() {
   const navigate = useNavigate();
-  const { login } = useAuthSession();
+  const { login: startSession } = useAuthSession();
 
-  const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -17,24 +16,20 @@ export function Signup() {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!displayName.trim() || !email.trim() || password.length < 8) return;
+    if (!email.trim() || !password) return;
 
     setError(null);
     setIsSubmitting(true);
 
     try {
-      const { accessToken } = await signup({
-        displayName: displayName.trim(),
-        email: email.trim(),
-        password,
-      });
-      login(accessToken);
+      const { accessToken } = await login({ email: email.trim(), password });
+      startSession(accessToken);
       navigate('/');
     } catch (err) {
-      if (err instanceof ApiError && err.status === 409) {
-        setError('That email is already registered.');
+      if (err instanceof ApiError && err.status === 401) {
+        setError('Incorrect email or password.');
       } else {
-        setError('Sign up failed. Try again.');
+        setError('Sign in failed. Try again.');
       }
     } finally {
       setIsSubmitting(false);
@@ -42,20 +37,10 @@ export function Signup() {
   };
 
   return (
-    <div className="signup-page">
-      <h1>Sign up</h1>
+    <div className="signin-page">
+      <h1>Sign in</h1>
 
       <form onSubmit={handleSubmit}>
-        <label>
-          Name
-          <input
-            type="text"
-            value={displayName}
-            onChange={(event) => setDisplayName(event.target.value)}
-            required
-          />
-        </label>
-
         <label>
           Email
           <input
@@ -72,23 +57,19 @@ export function Signup() {
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            minLength={8}
             required
           />
         </label>
 
-        <button
-          type="submit"
-          disabled={isSubmitting || !displayName.trim() || !email.trim() || password.length < 8}
-        >
-          {isSubmitting ? 'Signing up…' : 'Sign up'}
+        <button type="submit" disabled={isSubmitting || !email.trim() || !password}>
+          {isSubmitting ? 'Signing in…' : 'Sign in'}
         </button>
       </form>
 
-      {error && <p className="signup-error">{error}</p>}
+      {error && <p className="signin-error">{error}</p>}
 
-      <p className="signup-signin-link">
-        Already have an account? <Link to="/signin">Sign in</Link>
+      <p className="signin-signup-link">
+        Don't have an account? <Link to="/signup">Sign up</Link>
       </p>
     </div>
   );

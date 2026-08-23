@@ -1,12 +1,21 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { MenuIcon, PlayIcon, SearchIcon } from './icons';
 import { UserMenu } from '../../features/user/UserMenu';
+import { useAuthSession } from '../../features/auth/AuthSessionContext';
 
 interface HeaderProps {
   onMenuClick: () => void;
 }
 
 export function Header({ onMenuClick }: HeaderProps) {
+  const { accessToken, logout } = useAuthSession();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   return (
     <header className="app-header">
       <div className="app-header__start">
@@ -36,9 +45,20 @@ export function Header({ onMenuClick }: HeaderProps) {
       </form>
 
       <div className="app-header__end">
-        <Link to="/signup" className="app-header__signup-link">
-          Sign up
-        </Link>
+        {accessToken ? (
+          <button type="button" className="app-header__logout-button" onClick={handleLogout}>
+            Log out
+          </button>
+        ) : (
+          <>
+            <Link to="/signin" className="app-header__signin-link">
+              Sign in
+            </Link>
+            <Link to="/signup" className="app-header__signup-link">
+              Sign up
+            </Link>
+          </>
+        )}
         <UserMenu />
       </div>
     </header>
