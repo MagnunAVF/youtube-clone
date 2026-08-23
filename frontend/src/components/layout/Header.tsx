@@ -1,6 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { MenuIcon, PlayIcon, SearchIcon } from './icons';
-import { UserMenu } from '../../features/user/UserMenu';
 import { useAuthSession } from '../../features/auth/AuthSessionContext';
 
 interface HeaderProps {
@@ -8,7 +7,7 @@ interface HeaderProps {
 }
 
 export function Header({ onMenuClick }: HeaderProps) {
-  const { accessToken, logout } = useAuthSession();
+  const { user, logout } = useAuthSession();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -45,10 +44,13 @@ export function Header({ onMenuClick }: HeaderProps) {
       </form>
 
       <div className="app-header__end">
-        {accessToken ? (
-          <button type="button" className="app-header__logout-button" onClick={handleLogout}>
-            Log out
-          </button>
+        {user ? (
+          <>
+            <span className="app-header__user">{user.displayName}</span>
+            <button type="button" className="app-header__logout-button" onClick={handleLogout}>
+              Log out
+            </button>
+          </>
         ) : (
           <>
             <Link to="/signin" className="app-header__signin-link">
@@ -59,7 +61,6 @@ export function Header({ onMenuClick }: HeaderProps) {
             </Link>
           </>
         )}
-        <UserMenu />
       </div>
     </header>
   );

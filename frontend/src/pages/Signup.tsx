@@ -23,12 +23,12 @@ export function Signup() {
     setIsSubmitting(true);
 
     try {
-      const { accessToken } = await signup({
+      const { accessToken, user } = await signup({
         displayName: displayName.trim(),
         email: email.trim(),
         password,
       });
-      login(accessToken);
+      login(accessToken, user);
       navigate('/');
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {

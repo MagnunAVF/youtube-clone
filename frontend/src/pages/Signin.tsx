@@ -22,8 +22,8 @@ export function Signin() {
     setIsSubmitting(true);
 
     try {
-      const { accessToken } = await login({ email: email.trim(), password });
-      startSession(accessToken);
+      const { accessToken, user } = await login({ email: email.trim(), password });
+      startSession(accessToken, user);
       navigate('/');
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {

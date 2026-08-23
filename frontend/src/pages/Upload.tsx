@@ -1,11 +1,12 @@
 import { useRef, useState, type FormEvent } from 'react';
-import { useCurrentUser } from '../features/user/CurrentUserContext';
+import { Link } from 'react-router-dom';
+import { useAuthSession } from '../features/auth/AuthSessionContext';
 import { uploadVideo } from '../features/videos/api';
 import type { VideoRecord } from '../features/videos/types';
 import './Upload.css';
 
 export function Upload() {
-  const { currentUser } = useCurrentUser();
+  const { user } = useAuthSession();
   const formRef = useRef<HTMLFormElement>(null);
 
   const [title, setTitle] = useState('');
@@ -19,7 +20,7 @@ export function Upload() {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!currentUser || !file || !title.trim()) return;
+    if (!user || !file || !title.trim()) return;
 
     setError(null);
     setResult(null);
@@ -30,7 +31,7 @@ export function Upload() {
         {
           title: title.trim(),
           description: description.trim() || undefined,
-          uploaderId: currentUser.id,
+          uploaderId: user.id,
           file,
         },
         setProgress,
@@ -47,8 +48,12 @@ export function Upload() {
     }
   };
 
-  if (!currentUser) {
-    return <p>Select or create a user from the menu above before uploading.</p>;
+  if (!user) {
+    return (
+      <p>
+        <Link to="/signin">Sign in</Link> to upload a video.
+      </p>
+    );
   }
 
   return (
