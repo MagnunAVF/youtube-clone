@@ -48,7 +48,7 @@ jobs:
 
       - run: pnpm --filter youtube-backend run build
 
-      - run: pnpm --filter youtube-backend run test
+      - run: pnpm --filter youtube-backend run test:cov
 
       - name: Start MongoDB + MinIO
         run: docker compose up -d mongodb minio minio-init
@@ -58,7 +58,7 @@ jobs:
           timeout 30 bash -c 'until docker compose logs minio-init 2>&1 | grep -q "Bucket created successfully"; do sleep 1; done'
 
       - name: Run e2e tests
-        run: pnpm --filter youtube-backend run test:e2e
+        run: pnpm --filter youtube-backend run test:e2e:cov
         env:
           MONGODB_URI: mongodb://localhost:27017/youtube-clone
           AWS_REGION: us-east-1
