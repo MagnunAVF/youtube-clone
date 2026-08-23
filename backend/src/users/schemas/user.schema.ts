@@ -7,6 +7,14 @@ export type UserDocument = HydratedDocument<User>;
 export class User {
   @Prop({ required: true, trim: true })
   displayName: string;
+
+  // Optional for now: the no-auth `POST /users` flow doesn't set these.
+  // Populated once signup/login land.
+  @Prop({ trim: true, lowercase: true, unique: true, sparse: true })
+  email?: string;
+
+  @Prop()
+  passwordHash?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

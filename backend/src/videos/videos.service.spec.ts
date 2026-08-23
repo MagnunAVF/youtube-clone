@@ -43,7 +43,8 @@ describe('VideosService', () => {
   });
 
   it('uploads the file to S3 and creates a video document referencing the uploader', async () => {
-    const dto = { title: 'My Video', uploaderId: '507f1f77bcf86cd799439011' };
+    const dto = { title: 'My Video' };
+    const uploaderId = '507f1f77bcf86cd799439011';
     const file = {
       originalname: 'clip.mp4',
       mimetype: 'video/mp4',
@@ -51,7 +52,7 @@ describe('VideosService', () => {
     } as Express.Multer.File;
     videoModel.create.mockResolvedValue({ _id: 'created' });
 
-    await service.create(dto, file);
+    await service.create(dto, uploaderId, file);
 
     expect(s3Client.send).toHaveBeenCalledTimes(1);
     const putCommand = s3Client.send.mock.calls[0][0];
@@ -64,7 +65,7 @@ describe('VideosService', () => {
     expect(videoModel.create).toHaveBeenCalledTimes(1);
     const created = videoModel.create.mock.calls[0][0];
     expect(created.title).toBe(dto.title);
-    expect(created.uploaderId.toString()).toBe(dto.uploaderId);
+    expect(created.uploaderId.toString()).toBe(uploaderId);
     expect(created.s3Key).toBe(putCommand.input.Key);
   });
 

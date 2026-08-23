@@ -6,6 +6,7 @@ import { VideosService } from './videos.service';
 describe('VideosController', () => {
   let controller: VideosController;
   const videosService = { create: jest.fn(), findAll: jest.fn(), findOne: jest.fn() };
+  const currentUser = { _id: { toString: () => '507f1f77bcf86cd799439011' }, displayName: 'Ada' };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -20,23 +21,23 @@ describe('VideosController', () => {
     jest.clearAllMocks();
   });
 
-  it('delegates creation to the service with the uploaded file', async () => {
-    const dto = { title: 'My Video', uploaderId: '507f1f77bcf86cd799439011' };
+  it('delegates creation to the service with the uploaded file and the current user', async () => {
+    const dto = { title: 'My Video' };
     const file = { originalname: 'clip.mp4' } as Express.Multer.File;
     const created = { _id: '1', ...dto };
     videosService.create.mockResolvedValue(created);
 
-    const result = await controller.create(dto, file);
+    const result = await controller.create(dto, file, currentUser as never);
 
-    expect(videosService.create).toHaveBeenCalledWith(dto, file);
+    expect(videosService.create).toHaveBeenCalledWith(dto, '507f1f77bcf86cd799439011', file);
     expect(result).toEqual(created);
   });
 
   it('rejects when no file is uploaded', async () => {
-    const dto = { title: 'My Video', uploaderId: '507f1f77bcf86cd799439011' };
+    const dto = { title: 'My Video' };
 
     await expect(
-      controller.create(dto, undefined as unknown as Express.Multer.File),
+      controller.create(dto, undefined as unknown as Express.Multer.File, currentUser as never),
     ).rejects.toThrow(BadRequestException);
     expect(videosService.create).not.toHaveBeenCalled();
   });

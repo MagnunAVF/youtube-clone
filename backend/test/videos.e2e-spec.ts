@@ -20,13 +20,26 @@ describe('Videos (e2e)', () => {
     await app.init();
   });
 
-  it('/videos (POST) uploads the file to S3 and creates a video record', async () => {
-    const uploaderId = new Types.ObjectId().toHexString();
+  async function signUp(displayName: string) {
+    const email = `${displayName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}@example.com`;
+    const response = await request(app.getHttpServer())
+      .post('/auth/signup')
+      .send({ displayName, email, password: 'supersecret' })
+      .expect(201);
+
+    return {
+      accessToken: response.body.accessToken as string,
+      uploaderId: response.body.user.id as string,
+    };
+  }
+
+  it('/videos (POST) uploads the file to S3 and creates a video record for the logged-in user', async () => {
+    const { accessToken, uploaderId } = await signUp('Ada Lovelace');
 
     const response = await request(app.getHttpServer())
       .post('/videos')
+      .set('Authorization', `Bearer ${accessToken}`)
       .field('title', 'My Video')
-      .field('uploaderId', uploaderId)
       .attach('file', Buffer.from('fake-video-bytes'), 'clip.mp4')
       .expect(201);
 
@@ -40,17 +53,30 @@ describe('Videos (e2e)', () => {
     );
   });
 
-  it('/videos (GET) lists the created video with a resolved uploader', async () => {
-    const userResponse = await request(app.getHttpServer())
-      .post('/users')
-      .send({ displayName: 'Grace Hopper' })
-      .expect(201);
-    const uploaderId = userResponse.body._id as string;
+  it('/videos (POST) 401s without an Authorization header', async () => {
+    await request(app.getHttpServer())
+      .post('/videos')
+      .field('title', 'My Video')
+      .attach('file', Buffer.from('fake-video-bytes'), 'clip.mp4')
+      .expect(401);
+  });
+
+  it('/videos (POST) 401s with an invalid token', async () => {
+    await request(app.getHttpServer())
+      .post('/videos')
+      .set('Authorization', 'Bearer not-a-real-token')
+      .field('title', 'My Video')
+      .attach('file', Buffer.from('fake-video-bytes'), 'clip.mp4')
+      .expect(401);
+  });
+
+  it('/videos (GET) lists the created video with a resolved uploader - no auth required', async () => {
+    const { accessToken, uploaderId } = await signUp('Grace Hopper');
 
     const uploadResponse = await request(app.getHttpServer())
       .post('/videos')
+      .set('Authorization', `Bearer ${accessToken}`)
       .field('title', 'Listed Video')
-      .field('uploaderId', uploaderId)
       .attach('file', Buffer.from('fake-video-bytes'), 'clip.mp4')
       .expect(201);
     const videoId = uploadResponse.body._id as string;
@@ -68,19 +94,15 @@ describe('Videos (e2e)', () => {
     });
   });
 
-  it('/videos/:id (GET) fetches metadata and a working playback URL', async () => {
-    const userResponse = await request(app.getHttpServer())
-      .post('/users')
-      .send({ displayName: 'Katherine Johnson' })
-      .expect(201);
-    const uploaderId = userResponse.body._id as string;
+  it('/videos/:id (GET) fetches metadata and a working playback URL - no auth required', async () => {
+    const { accessToken, uploaderId } = await signUp('Katherine Johnson');
 
     const fileContents = 'fake-video-bytes-for-detail-test';
     const uploadResponse = await request(app.getHttpServer())
       .post('/videos')
+      .set('Authorization', `Bearer ${accessToken}`)
       .field('title', 'Detail Video')
       .field('description', 'A video for the detail endpoint test')
-      .field('uploaderId', uploaderId)
       .attach('file', Buffer.from(fileContents), 'clip.mp4')
       .expect(201);
     const videoId = uploadResponse.body._id as string;
@@ -113,41 +135,32 @@ describe('Videos (e2e)', () => {
   });
 
   it('/videos (POST) 400s when the title is missing', async () => {
-    const uploaderId = new Types.ObjectId().toHexString();
+    const { accessToken } = await signUp('Missing Title');
 
     await request(app.getHttpServer())
       .post('/videos')
-      .field('uploaderId', uploaderId)
-      .attach('file', Buffer.from('fake-video-bytes'), 'clip.mp4')
-      .expect(400);
-  });
-
-  it('/videos (POST) 400s when uploaderId is not a valid id', async () => {
-    await request(app.getHttpServer())
-      .post('/videos')
-      .field('title', 'My Video')
-      .field('uploaderId', 'not-an-object-id')
+      .set('Authorization', `Bearer ${accessToken}`)
       .attach('file', Buffer.from('fake-video-bytes'), 'clip.mp4')
       .expect(400);
   });
 
   it('/videos (POST) 400s when no file is attached', async () => {
-    const uploaderId = new Types.ObjectId().toHexString();
+    const { accessToken } = await signUp('No File');
 
     await request(app.getHttpServer())
       .post('/videos')
+      .set('Authorization', `Bearer ${accessToken}`)
       .field('title', 'My Video')
-      .field('uploaderId', uploaderId)
       .expect(400);
   });
 
   it('/videos (POST) 400s when the file is not a video', async () => {
-    const uploaderId = new Types.ObjectId().toHexString();
+    const { accessToken } = await signUp('Not A Video');
 
     await request(app.getHttpServer())
       .post('/videos')
+      .set('Authorization', `Bearer ${accessToken}`)
       .field('title', 'My Video')
-      .field('uploaderId', uploaderId)
       .attach('file', Buffer.from('not a video'), {
         filename: 'notes.txt',
         contentType: 'text/plain',

@@ -26,10 +26,14 @@ export class VideosService {
     this.bucket = configService.get<string>('S3_BUCKET_NAME', 'videos');
   }
 
-  async create(createVideoDto: CreateVideoDto, file: Express.Multer.File): Promise<VideoDocument> {
+  async create(
+    createVideoDto: CreateVideoDto,
+    uploaderId: string,
+    file: Express.Multer.File,
+  ): Promise<VideoDocument> {
     const videoId = new Types.ObjectId();
     // Key convention: videos/{userId}/{videoId}/original.<ext>
-    const s3Key = `videos/${createVideoDto.uploaderId}/${videoId.toHexString()}/original${extname(file.originalname)}`;
+    const s3Key = `videos/${uploaderId}/${videoId.toHexString()}/original${extname(file.originalname)}`;
 
     await this.s3Client.send(
       new PutObjectCommand({
@@ -45,7 +49,7 @@ export class VideosService {
       title: createVideoDto.title,
       description: createVideoDto.description,
       s3Key,
-      uploaderId: new Types.ObjectId(createVideoDto.uploaderId),
+      uploaderId: new Types.ObjectId(uploaderId),
     });
   }
 

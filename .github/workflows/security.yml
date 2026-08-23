@@ -3,7 +3,7 @@ name: Security
 on:
   pull_request:
   schedule:
-    - cron: '0 6 * * 1' # weekly, Monday 06:00 UTC — catches newly disclosed CVEs against unchanged deps
+    - cron: '0 6 * * 1' # weekly, Monday 06:00 UTC - catches newly disclosed CVEs against unchanged deps
   workflow_dispatch:
 
 permissions:

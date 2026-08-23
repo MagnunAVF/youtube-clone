@@ -87,6 +87,52 @@
 
 .app-header__end {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.app-header__signin-link {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.app-header__signin-link:hover {
+  text-decoration: underline;
+}
+
+.app-header__signup-link {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.app-header__signup-link:hover {
+  text-decoration: underline;
+}
+
+.app-header__user {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.app-header__logout-button {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+
+.app-header__logout-button:hover {
+  background: var(--bg-hover);
 }
 
 /* Body: sidebar + content */

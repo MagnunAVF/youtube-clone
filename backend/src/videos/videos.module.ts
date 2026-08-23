@@ -5,6 +5,7 @@ import { VideosService } from './videos.service';
 import { Video, VideoSchema } from './schemas/video.schema';
 import { StorageModule } from '../storage/storage.module';
 import { User, UserSchema } from '../users/schemas/user.schema';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { User, UserSchema } from '../users/schemas/user.schema';
       { name: User.name, schema: UserSchema },
     ]),
     StorageModule,
+    AuthModule,
   ],
   controllers: [VideosController],
   providers: [VideosService],
