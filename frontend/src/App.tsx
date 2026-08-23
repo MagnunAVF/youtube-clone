@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 import { Home } from './pages/Home';
 import { Upload } from './pages/Upload';
+import { Signup } from './pages/Signup';
 import { CurrentUserProvider } from './features/user/CurrentUserContext';
 
 // Lazy-loaded: pulls in Shaka Player, which shouldn't bloat the initial bundle.
@@ -16,6 +17,7 @@ function App() {
           <Route element={<AppShell />}>
             <Route index element={<Home />} />
             <Route path="upload" element={<Upload />} />
+            <Route path="signup" element={<Signup />} />
             <Route
               path="watch/:id"
               element={

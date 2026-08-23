@@ -87,6 +87,20 @@
 
 .app-header__end {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.app-header__signup-link {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.app-header__signup-link:hover {
+  text-decoration: underline;
 }
 
 /* Body: sidebar + content */

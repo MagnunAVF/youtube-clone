@@ -36,6 +36,9 @@ export function Header({ onMenuClick }: HeaderProps) {
       </form>
 
       <div className="app-header__end">
+        <Link to="/signup" className="app-header__signup-link">
+          Sign up
+        </Link>
         <UserMenu />
       </div>
     </header>
