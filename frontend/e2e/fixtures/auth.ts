@@ -4,8 +4,8 @@ import { testUser, type TestUser } from './test-data';
 const API_BASE_URL = process.env.E2E_API_URL ?? 'http://localhost:3000';
 
 // Matches the keys AuthSessionContext reads from — see frontend/src/features/auth/session.ts.
-const ACCESS_TOKEN_KEY = 'youtube-clone:accessToken';
-const USER_KEY = 'youtube-clone:authUser';
+export const ACCESS_TOKEN_KEY = 'youtube-clone:accessToken';
+export const USER_KEY = 'youtube-clone:authUser';
 
 export interface SignedInUser extends TestUser {
   id: string;
