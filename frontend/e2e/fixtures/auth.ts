@@ -13,6 +13,7 @@ export interface SignedInUser extends TestUser {
 
 interface AuthFixtures {
   signedInUser: SignedInUser;
+  expiredSessionUser: SignedInUser;
 }
 
 export const test = base.extend<AuthFixtures>({
@@ -37,6 +38,31 @@ export const test = base.extend<AuthFixtures>({
     );
 
     await use({ ...user, id: body.user.id, accessToken: body.accessToken });
+  },
+
+  // Seeds a session with a JWT-shaped but bogus token, with no matching signup - the UI reads
+  // localStorage directly and renders as logged in, but any guarded API call the backend
+  // actually checks (e.g. an upload) will be rejected with 401, simulating an expired/invalid
+  // session discovered mid-action.
+  expiredSessionUser: async ({ page }, use) => {
+    const user = testUser('Expired Session User');
+    const fakeId = 'expired-session-user-id';
+    const fakeToken = 'header.invalidpayload.signature';
+
+    await page.addInitScript(
+      ({ tokenKey, userKey, token, storedUser }) => {
+        localStorage.setItem(tokenKey, token);
+        localStorage.setItem(userKey, JSON.stringify(storedUser));
+      },
+      {
+        tokenKey: ACCESS_TOKEN_KEY,
+        userKey: USER_KEY,
+        token: fakeToken,
+        storedUser: { id: fakeId, displayName: user.displayName, email: user.email },
+      },
+    );
+
+    await use({ ...user, id: fakeId, accessToken: fakeToken });
   },
 });
 
