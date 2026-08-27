@@ -1,6 +1,10 @@
 # Build context is the repo root (this is a pnpm workspace) - see docker-compose.yml.
 
 FROM node:24-alpine AS base
+# The upstream image tag lags behind Alpine's package repos on OS-level security fixes -
+# upgrade at build time so the image doesn't ship known-fixed CVEs (e.g. OpenSSL) just
+# because node:24-alpine hasn't been rebuilt yet.
+RUN apk upgrade --no-cache
 RUN corepack enable
 
 FROM base AS deps
