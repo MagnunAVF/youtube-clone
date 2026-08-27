@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3Client } from '@aws-sdk/client-s3';
-import { S3_CLIENT } from './storage.constants';
+import { S3_CLIENT, S3_PRESIGN_CLIENT } from './storage.constants';
 
 @Module({
   providers: [
@@ -26,7 +26,33 @@ import { S3_CLIENT } from './storage.constants';
         });
       },
     },
+    {
+      provide: S3_PRESIGN_CLIENT,
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        // S3_ENDPOINT (used for the backend's own container-to-container S3 calls, e.g.
+        // http://minio:9000 in docker-compose) isn't reachable from a browser. Presigned
+        // playback URLs need the browser-facing host instead, so they're signed with a
+        // separate client pointed at S3_PUBLIC_ENDPOINT - which defaults to S3_ENDPOINT for
+        // setups where the two already match (bare local dev, or AWS with neither set).
+        const endpoint =
+          configService.get<string>('S3_PUBLIC_ENDPOINT') ??
+          configService.get<string>('S3_ENDPOINT');
+
+        return new S3Client({
+          region: configService.get<string>('AWS_REGION', 'us-east-1'),
+          ...(endpoint && {
+            endpoint,
+            forcePathStyle: true,
+            credentials: {
+              accessKeyId: configService.getOrThrow<string>('S3_ACCESS_KEY_ID'),
+              secretAccessKey: configService.getOrThrow<string>('S3_SECRET_ACCESS_KEY'),
+            },
+          }),
+        });
+      },
+    },
   ],
-  exports: [S3_CLIENT],
+  exports: [S3_CLIENT, S3_PRESIGN_CLIENT],
 })
 export class StorageModule {}
