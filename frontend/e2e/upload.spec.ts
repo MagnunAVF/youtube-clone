@@ -19,4 +19,17 @@ test.describe('Video upload', () => {
     await expect(card).toBeVisible();
     await expect(card.locator('.video-card__uploader')).toHaveText(signedInUser.displayName);
   });
+
+  test('gates behind sign-in when logged out', async ({ page }) => {
+    await page.goto('/upload');
+
+    await expect(page.getByText('to upload a video.')).toBeVisible();
+    await expect(page.getByLabel('Title')).toHaveCount(0);
+
+    const gateSignInLink = page.getByRole('link', { name: 'Sign in' }).last();
+    await expect(gateSignInLink).toHaveAttribute('href', '/signin');
+
+    await gateSignInLink.click();
+    await expect(page).toHaveURL('/signin');
+  });
 });
