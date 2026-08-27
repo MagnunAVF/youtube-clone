@@ -122,3 +122,15 @@ test.describe('Logout', () => {
     expect(storedUser).toBeNull();
   });
 });
+
+test.describe('Session persistence', () => {
+  test('token and user survive a page reload', async ({ page, signedInUser }) => {
+    await page.goto('/');
+    await expectLoggedInSession(page, signedInUser);
+
+    // A reload is a fresh page load — AuthSessionContext has to re-read localStorage from
+    // scratch rather than relying on in-memory React state carried over from a client navigation.
+    await page.reload();
+    await expectLoggedInSession(page, signedInUser);
+  });
+});
