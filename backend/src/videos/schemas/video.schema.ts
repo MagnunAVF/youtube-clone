@@ -1,0 +1,35 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument, Types } from 'mongoose';
+
+export type VideoDocument = HydratedDocument<Video>;
+
+export enum VideoStatus {
+  Uploaded = 'uploaded',
+}
+
+@Schema({ timestamps: true })
+export class Video {
+  @Prop({ required: true, trim: true })
+  title: string;
+
+  @Prop({ trim: true })
+  description?: string;
+
+  // Key convention: videos/{userId}/{videoId}/original.<ext>
+  @Prop({ required: true })
+  s3Key: string;
+
+  @Prop({ required: true, enum: VideoStatus, default: VideoStatus.Uploaded })
+  status: VideoStatus;
+
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  uploaderId: Types.ObjectId;
+
+  // Managed by the `timestamps: true` schema option below; declared here only for typing.
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export const VideoSchema = SchemaFactory.createForClass(Video);
+
+VideoSchema.index({ createdAt: -1 });

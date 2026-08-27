@@ -1,0 +1,145 @@
+name: CI
+
+on:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+            frontend:
+              - 'frontend/**'
+
+  backend:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm run lint:backend
+
+      - run: pnpm run format:check:backend
+
+      - run: pnpm --filter youtube-backend run build
+
+      - run: pnpm --filter youtube-backend run test:cov
+
+      - name: Start MongoDB + MinIO
+        run: docker compose up -d mongodb minio minio-init
+
+      - name: Wait for the videos bucket to be created
+        run: |
+          timeout 30 bash -c 'until docker compose logs minio-init 2>&1 | grep -q "Bucket created successfully"; do sleep 1; done'
+
+      - name: Run e2e tests
+        run: pnpm --filter youtube-backend run test:e2e:cov
+        env:
+          MONGODB_URI: mongodb://localhost:27017/youtube-clone
+          AWS_REGION: us-east-1
+          S3_ENDPOINT: http://localhost:9000
+          S3_ACCESS_KEY_ID: minioadmin
+          S3_SECRET_ACCESS_KEY: minioadmin
+          S3_BUCKET_NAME: videos
+          JWT_SECRET: ${{ secrets.CI_JWT_SECRET || 'ci-test-secret-not-for-production-use' }}
+
+      - name: Tear down MongoDB + MinIO
+        if: always()
+        run: docker compose down -v
+
+  frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm run lint:frontend
+
+      - run: pnpm run format:check:frontend
+
+      - run: pnpm --filter youtube-frontend run build
+
+  frontend-e2e:
+    needs: changes
+    # Exercises the frontend against a real backend, so a backend-only change can break it too.
+    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter youtube-frontend exec playwright install --with-deps chromium
+
+      - name: Start backend + MongoDB + MinIO
+        run: docker compose up -d
+        env:
+          JWT_SECRET: ${{ secrets.CI_JWT_SECRET || 'ci-test-secret-not-for-production-use' }}
+
+      - name: Wait for the videos bucket to be created
+        run: |
+          timeout 30 bash -c 'until docker compose logs minio-init 2>&1 | grep -q "Bucket created successfully"; do sleep 1; done'
+
+      - name: Wait for the backend to be healthy
+        run: |
+          timeout 30 bash -c 'until curl -sf http://localhost:3000/health >/dev/null; do sleep 1; done'
+
+      - name: Run Playwright tests
+        run: pnpm --filter youtube-frontend run test:e2e
+        env:
+          E2E_BASE_URL: http://localhost:5173
+          E2E_API_URL: http://localhost:3000
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 7
+
+      - name: Tear down backend + MongoDB + MinIO
+        if: always()
+        run: docker compose down -v

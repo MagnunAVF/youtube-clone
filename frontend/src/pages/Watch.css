@@ -1,0 +1,27 @@
+.watch-page {
+  max-width: 960px;
+}
+
+.watch-page__player {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 8px;
+}
+
+.watch-page__title {
+  font-size: 18px;
+  margin: 16px 0 4px;
+}
+
+.watch-page__uploader {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.watch-page__description {
+  margin: 0;
+  font-size: 14px;
+  white-space: pre-wrap;
+}

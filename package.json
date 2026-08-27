@@ -5,14 +5,23 @@
   "type": "module",
   "packageManager": "pnpm@11.14.0",
   "scripts": {
+    "prepare": "husky",
     "lint": "eslint .",
+    "lint:backend": "eslint backend",
+    "lint:frontend": "eslint frontend",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "format:check:backend": "prettier --check backend",
+    "format:check:frontend": "prettier --check frontend"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.2",
     "@eslint/js": "^9.15.0",
     "eslint": "^9.15.0",
     "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.3.0",
     "prettier": "^3.3.3",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.15.0"
