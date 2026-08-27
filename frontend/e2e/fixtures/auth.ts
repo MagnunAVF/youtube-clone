@@ -2,7 +2,7 @@ import { test as base, expect } from '@playwright/test';
 import { testUser, type TestUser } from './test-data';
 import { signUpViaApi } from './api';
 
-// Matches the keys AuthSessionContext reads from — see frontend/src/features/auth/session.ts.
+// Matches the keys AuthSessionContext reads from - see frontend/src/features/auth/session.ts.
 export const ACCESS_TOKEN_KEY = 'youtube-clone:accessToken';
 export const USER_KEY = 'youtube-clone:authUser';
 

@@ -19,7 +19,7 @@ export function testUser(prefix: string): TestUser {
   };
 }
 
-// Same isolation concern as uniqueEmail — used e.g. for video titles so repeated/parallel
+// Same isolation concern as uniqueEmail - used e.g. for video titles so repeated/parallel
 // test runs against a persistent backend don't collide on an identical title.
 export function uniqueTitle(prefix: string): string {
   const suffix = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;

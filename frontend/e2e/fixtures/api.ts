@@ -8,7 +8,7 @@ export interface SignupResponse {
   user: { id: string; displayName: string; email: string };
 }
 
-// Bypasses the UI entirely — for tests that just need an account to already exist
+// Bypasses the UI entirely - for tests that just need an account to already exist
 // (e.g. a duplicate-email check) without driving the signup form or touching the page's session.
 export async function signUpViaApi(user: TestUser): Promise<SignupResponse> {
   const response = await fetch(`${API_BASE_URL}/auth/signup`, {
@@ -33,7 +33,7 @@ export interface UploadedVideo {
   title: string;
 }
 
-// Bypasses the UI entirely — for tests that just need a real, persisted video (with its
+// Bypasses the UI entirely - for tests that just need a real, persisted video (with its
 // file actually landing in S3) without driving the upload form.
 export async function uploadVideoViaApi(
   accessToken: string,

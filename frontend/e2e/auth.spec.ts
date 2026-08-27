@@ -4,7 +4,7 @@ import { testUser } from './fixtures/test-data';
 import { signUpViaApi } from './fixtures/api';
 
 // Asserts the UI reflects a logged-in session, then checks past the UI into the underlying
-// storage — the header text alone wouldn't catch a broken/missing token or user record.
+// storage - the header text alone wouldn't catch a broken/missing token or user record.
 async function expectLoggedInSession(
   page: Page,
   user: { displayName: string; email: string },
@@ -36,7 +36,7 @@ async function expectStillLoggedOut(page: Page, path: string): Promise<void> {
 }
 
 test.describe('Signup', () => {
-  test('creates an account and logs the user in', async ({ page }) => {
+  test('creates an account and logs the user in', { tag: '@journey' }, async ({ page }) => {
     const user = testUser('Signup Journey');
 
     await page.goto('/signup');
@@ -66,7 +66,7 @@ test.describe('Signup', () => {
 });
 
 test.describe('Login', () => {
-  test('with valid credentials logs the user in', async ({ page }) => {
+  test('with valid credentials logs the user in', { tag: '@journey' }, async ({ page }) => {
     const user = testUser('Login Journey');
     await signUpViaApi(user); // pre-create the account; no UI or session involved
 
@@ -107,20 +107,24 @@ test.describe('Login', () => {
 });
 
 test.describe('Logout', () => {
-  test('clears the session and reverts the header', async ({ page, signedInUser }) => {
-    await page.goto('/');
-    await expectLoggedInSession(page, signedInUser);
+  test(
+    'clears the session and reverts the header',
+    { tag: '@journey' },
+    async ({ page, signedInUser }) => {
+      await page.goto('/');
+      await expectLoggedInSession(page, signedInUser);
 
-    await page.getByRole('button', { name: 'Log out' }).click();
+      await page.getByRole('button', { name: 'Log out' }).click();
 
-    // Reverts to the logged-out header and lands back on home.
-    await page.waitForURL('/');
-    await expectStillLoggedOut(page, '/');
+      // Reverts to the logged-out header and lands back on home.
+      await page.waitForURL('/');
+      await expectStillLoggedOut(page, '/');
 
-    // expectStillLoggedOut only checks the token — confirm the cached user record is gone too.
-    const storedUser = await page.evaluate((key) => localStorage.getItem(key), USER_KEY);
-    expect(storedUser).toBeNull();
-  });
+      // expectStillLoggedOut only checks the token - confirm the cached user record is gone too.
+      const storedUser = await page.evaluate((key) => localStorage.getItem(key), USER_KEY);
+      expect(storedUser).toBeNull();
+    },
+  );
 });
 
 test.describe('Session persistence', () => {
@@ -128,7 +132,7 @@ test.describe('Session persistence', () => {
     await page.goto('/');
     await expectLoggedInSession(page, signedInUser);
 
-    // A reload is a fresh page load — AuthSessionContext has to re-read localStorage from
+    // A reload is a fresh page load - AuthSessionContext has to re-read localStorage from
     // scratch rather than relying on in-memory React state carried over from a client navigation.
     await page.reload();
     await expectLoggedInSession(page, signedInUser);
