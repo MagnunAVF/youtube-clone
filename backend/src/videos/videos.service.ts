@@ -9,7 +9,7 @@ import { Video, VideoDocument } from './schemas/video.schema';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { VideoListItemDto } from './dto/video-list-item.dto';
 import { VideoDetailDto } from './dto/video-detail.dto';
-import { S3_CLIENT } from '../storage/storage.constants';
+import { S3_CLIENT, S3_PRESIGN_CLIENT } from '../storage/storage.constants';
 import { UserDocument } from '../users/schemas/user.schema';
 
 const PLAYBACK_URL_EXPIRY_SECONDS = 3600;
@@ -21,6 +21,7 @@ export class VideosService {
   constructor(
     @InjectModel(Video.name) private readonly videoModel: Model<VideoDocument>,
     @Inject(S3_CLIENT) private readonly s3Client: S3Client,
+    @Inject(S3_PRESIGN_CLIENT) private readonly s3PresignClient: S3Client,
     configService: ConfigService,
   ) {
     this.bucket = configService.get<string>('S3_BUCKET_NAME', 'videos');
@@ -82,7 +83,7 @@ export class VideosService {
     }
 
     const playbackUrl = await getSignedUrl(
-      this.s3Client,
+      this.s3PresignClient,
       new GetObjectCommand({ Bucket: this.bucket, Key: video.s3Key }),
       { expiresIn: PLAYBACK_URL_EXPIRY_SECONDS },
     );

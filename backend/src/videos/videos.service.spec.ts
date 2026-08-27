@@ -5,7 +5,7 @@ import { NotFoundException } from '@nestjs/common';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { VideosService } from './videos.service';
 import { Video } from './schemas/video.schema';
-import { S3_CLIENT } from '../storage/storage.constants';
+import { S3_CLIENT, S3_PRESIGN_CLIENT } from '../storage/storage.constants';
 
 jest.mock('@aws-sdk/s3-request-presigner');
 
@@ -19,6 +19,7 @@ describe('VideosService', () => {
     findById: jest.fn(() => findByIdQuery),
   };
   const s3Client = { send: jest.fn() };
+  const s3PresignClient = { send: jest.fn() };
   const getSignedUrlMock = jest.mocked(getSignedUrl);
 
   beforeEach(async () => {
@@ -31,6 +32,7 @@ describe('VideosService', () => {
         VideosService,
         { provide: getModelToken(Video.name), useValue: videoModel },
         { provide: S3_CLIENT, useValue: s3Client },
+        { provide: S3_PRESIGN_CLIENT, useValue: s3PresignClient },
         { provide: ConfigService, useValue: { get: () => 'videos' } },
       ],
     }).compile();
@@ -122,7 +124,10 @@ describe('VideosService', () => {
 
       expect(videoModel.findById).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
       expect(findByIdQuery.populate).toHaveBeenCalledWith('uploaderId');
-      const [, getObjectCommand, options] = getSignedUrlMock.mock.calls[0];
+      const [presignClientArg, getObjectCommand, options] = getSignedUrlMock.mock.calls[0];
+      // Playback URLs must be signed with the browser-facing client, not the internal one used
+      // for the backend's own S3 calls - see storage.module.ts.
+      expect(presignClientArg).toBe(s3PresignClient);
       expect(getObjectCommand.input).toMatchObject({
         Bucket: 'videos',
         Key: 'videos/uploader-1/507f1f77bcf86cd799439011/original.mp4',

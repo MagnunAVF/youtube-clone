@@ -9,6 +9,9 @@ services:
       MONGODB_URI: mongodb://mongodb:27017/youtube-clone
       AWS_REGION: us-east-1
       S3_ENDPOINT: http://minio:9000
+      # Presigned playback URLs are handed to the browser, which can't resolve the
+      # container-network hostname above - point them at the host-mapped port instead.
+      S3_PUBLIC_ENDPOINT: http://localhost:9000
       S3_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
       S3_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       S3_BUCKET_NAME: videos

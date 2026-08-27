@@ -59,9 +59,20 @@
 
 .app-header__search {
   flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   max-width: 640px;
   margin: 0 auto;
+}
+
+/* Below the sidebar's desktop breakpoint, start + end alone are already tight against the
+   header's available width - the search bar (not wired to real search yet) has to give way
+   entirely rather than dividing what little space is left, which left it overflowing into
+   the end section and silently eating clicks meant for Log out / Sign in. */
+@media (max-width: 767px) {
+  .app-header__search {
+    display: none;
+  }
 }
 
 .app-header__search input {
