@@ -27,6 +27,14 @@ async function expectLoggedInSession(
   });
 }
 
+// Asserts a rejected auth attempt left the user right where they were, with no session created.
+async function expectStillLoggedOut(page: Page, path: string): Promise<void> {
+  await expect(page).toHaveURL(path);
+  await expect(page.getByRole('link', { name: 'Sign in' }).first()).toBeVisible();
+  const accessToken = await page.evaluate((key) => localStorage.getItem(key), ACCESS_TOKEN_KEY);
+  expect(accessToken).toBeNull();
+}
+
 test.describe('Signup', () => {
   test('creates an account and logs the user in', async ({ page }) => {
     const user = testUser('Signup Journey');
@@ -53,12 +61,7 @@ test.describe('Signup', () => {
     await page.getByRole('button', { name: 'Sign up' }).click();
 
     await expect(page.getByText('That email is already registered.')).toBeVisible();
-
-    // Rejected — still on the signup page, still logged out, no session was created.
-    await expect(page).toHaveURL('/signup');
-    await expect(page.getByRole('link', { name: 'Sign in' }).first()).toBeVisible();
-    const accessToken = await page.evaluate((key) => localStorage.getItem(key), ACCESS_TOKEN_KEY);
-    expect(accessToken).toBeNull();
+    await expectStillLoggedOut(page, '/signup');
   });
 });
 
@@ -75,5 +78,30 @@ test.describe('Login', () => {
     // Login redirects to the home page once the session is established.
     await page.waitForURL('/');
     await expectLoggedInSession(page, user);
+  });
+
+  test('rejects a wrong password', async ({ page }) => {
+    const user = testUser('Wrong Password');
+    await signUpViaApi(user);
+
+    await page.goto('/signin');
+    await page.getByLabel('Email').fill(user.email);
+    await page.getByLabel('Password').fill('not-the-right-password');
+    await page.getByRole('button', { name: 'Sign in' }).click();
+
+    await expect(page.getByText('Incorrect email or password.')).toBeVisible();
+    await expectStillLoggedOut(page, '/signin');
+  });
+
+  test('rejects an unknown email', async ({ page }) => {
+    const unknownEmail = testUser('Unknown Email').email;
+
+    await page.goto('/signin');
+    await page.getByLabel('Email').fill(unknownEmail);
+    await page.getByLabel('Password').fill('whatever123');
+    await page.getByRole('button', { name: 'Sign in' }).click();
+
+    await expect(page.getByText('Incorrect email or password.')).toBeVisible();
+    await expectStillLoggedOut(page, '/signin');
   });
 });
