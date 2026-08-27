@@ -1,5 +1,6 @@
 import { test, expect, ACCESS_TOKEN_KEY, USER_KEY } from './fixtures/auth';
 import { testUser } from './fixtures/test-data';
+import { signUpViaApi } from './fixtures/api';
 
 test.describe('Signup', () => {
   test('creates an account and logs the user in', async ({ page }) => {
@@ -31,5 +32,24 @@ test.describe('Signup', () => {
       displayName: user.displayName,
       email: user.email,
     });
+  });
+
+  test('rejects a duplicate email', async ({ page }) => {
+    const existing = testUser('Duplicate Email');
+    await signUpViaApi(existing); // pre-create the account; no UI or session involved
+
+    await page.goto('/signup');
+    await page.getByLabel('Name').fill('Someone Else');
+    await page.getByLabel('Email').fill(existing.email);
+    await page.getByLabel('Password').fill('anothersecret123');
+    await page.getByRole('button', { name: 'Sign up' }).click();
+
+    await expect(page.getByText('That email is already registered.')).toBeVisible();
+
+    // Rejected — still on the signup page, still logged out, no session was created.
+    await expect(page).toHaveURL('/signup');
+    await expect(page.getByRole('link', { name: 'Sign in' }).first()).toBeVisible();
+    const accessToken = await page.evaluate((key) => localStorage.getItem(key), ACCESS_TOKEN_KEY);
+    expect(accessToken).toBeNull();
   });
 });

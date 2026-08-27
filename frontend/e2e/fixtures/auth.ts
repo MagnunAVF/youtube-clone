@@ -1,7 +1,6 @@
 import { test as base, expect } from '@playwright/test';
 import { testUser, type TestUser } from './test-data';
-
-const API_BASE_URL = process.env.E2E_API_URL ?? 'http://localhost:3000';
+import { signUpViaApi } from './api';
 
 // Matches the keys AuthSessionContext reads from — see frontend/src/features/auth/session.ts.
 export const ACCESS_TOKEN_KEY = 'youtube-clone:accessToken';
@@ -22,16 +21,7 @@ export const test = base.extend<AuthFixtures>({
   // precondition don't have to re-drive the signup form every time.
   signedInUser: async ({ page }, use) => {
     const user = testUser('E2E User');
-
-    const response = await fetch(`${API_BASE_URL}/auth/signup`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(user),
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to sign up test user: ${response.status}`);
-    }
-    const body = (await response.json()) as { accessToken: string; user: { id: string } };
+    const body = await signUpViaApi(user);
 
     await page.addInitScript(
       ({ tokenKey, userKey, token, storedUser }) => {
