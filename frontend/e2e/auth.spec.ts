@@ -105,3 +105,20 @@ test.describe('Login', () => {
     await expectStillLoggedOut(page, '/signin');
   });
 });
+
+test.describe('Logout', () => {
+  test('clears the session and reverts the header', async ({ page, signedInUser }) => {
+    await page.goto('/');
+    await expectLoggedInSession(page, signedInUser);
+
+    await page.getByRole('button', { name: 'Log out' }).click();
+
+    // Reverts to the logged-out header and lands back on home.
+    await page.waitForURL('/');
+    await expectStillLoggedOut(page, '/');
+
+    // expectStillLoggedOut only checks the token — confirm the cached user record is gone too.
+    const storedUser = await page.evaluate((key) => localStorage.getItem(key), USER_KEY);
+    expect(storedUser).toBeNull();
+  });
+});
